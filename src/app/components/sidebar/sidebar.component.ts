@@ -8,8 +8,9 @@ import { UiStateService } from '../../services/ui-state.service';
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent {
-  premises: string = '';
-  targetAudience: string = '';
+  whatToBeDone: string = '';
+  forWhom: string = '';
+  objective: string = '';
 
   constructor(
     private chatService: ChatService,
@@ -17,7 +18,7 @@ export class SidebarComponent {
   ) {}
 
   saveContext() {
-    this.uiState.setContext(this.premises, this.targetAudience);
+    this.uiState.setContext(this.whatToBeDone, this.forWhom, this.objective);
     this.chatService.addBotMessage('Contexto do projeto atualizado! Essas informações serão enviadas para a IA na sua próxima requisição visando aprimorar os resultados.');
   }
 

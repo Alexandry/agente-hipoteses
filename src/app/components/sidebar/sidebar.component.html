@@ -1,7 +1,7 @@
 <header class="sidebar-header">
-  <div class="logo-icon">✨</div>
+  <div class="logo-icon">🔍</div>
   <div class="titles">
-    <h1>Agente de Hipóteses</h1>
+    <h1>Lupa de Ideias</h1>
     <h2>IA Multiagente</h2>
   </div>
 </header>
@@ -13,13 +13,18 @@
   </div>
 
   <div class="form-group">
-    <label for="premissas">Premissas</label>
-    <textarea id="premissas" [(ngModel)]="premises" placeholder="Defina as premissas do projeto..."></textarea>
+    <label for="o-que">O que será feito?</label>
+    <textarea id="o-que" [(ngModel)]="whatToBeDone" placeholder="Ex: melhorar o tempo de resposta da análise de crédito"></textarea>
   </div>
 
   <div class="form-group">
-    <label for="publico-alvo">Público-alvo</label>
-    <textarea id="publico-alvo" [(ngModel)]="targetAudience" placeholder="Descreva o público-alvo..."></textarea>
+    <label for="para-quem">Para quem será feito?</label>
+    <textarea id="para-quem" [(ngModel)]="forWhom" placeholder="Ex: clientes que possuem ou poussíram produtos com o BV"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="objetivo">Objetivo / resultado esperado</label>
+    <textarea id="objetivo" [(ngModel)]="objective" placeholder="Ex: manter um relacionamento duradouro com o cliente (banco relacional)"></textarea>
   </div>
 
   <button class="btn-primary" (click)="saveContext()">Salvar contexto</button>
@@ -38,7 +43,7 @@
     <h3>Histórico</h3>
     <button class="collapse-btn">‹</button>
   </div>
-  
+
   <ul class="history-menu">
     <li>
       <button class="menu-item" (click)="goToIdeias()">

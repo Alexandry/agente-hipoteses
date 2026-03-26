@@ -10,22 +10,25 @@ export class UiStateService {
   private currentViewSubject = new BehaviorSubject<AppView>('chat');
   currentView$ = this.currentViewSubject.asObservable();
 
-  private premisesSubject = new BehaviorSubject<string>('');
-  private targetAudienceSubject = new BehaviorSubject<string>('');
+  private whatToBeDoneSubject = new BehaviorSubject<string>('');
+  private forWhomSubject = new BehaviorSubject<string>('');
+  private objectiveSubject = new BehaviorSubject<string>('');
 
   setView(view: AppView) {
     this.currentViewSubject.next(view);
   }
 
-  setContext(premises: string, targetAudience: string) {
-    this.premisesSubject.next(premises);
-    this.targetAudienceSubject.next(targetAudience);
+  setContext(whatToBeDone: string, forWhom: string, objective: string) {
+    this.whatToBeDoneSubject.next(whatToBeDone);
+    this.forWhomSubject.next(forWhom);
+    this.objectiveSubject.next(objective);
   }
 
   getContext() {
     return {
-      premises: this.premisesSubject.getValue(),
-      targetAudience: this.targetAudienceSubject.getValue()
+      whatToBeDone: this.whatToBeDoneSubject.getValue(),
+      forWhom: this.forWhomSubject.getValue(),
+      objective: this.objectiveSubject.getValue()
     };
   }
 }

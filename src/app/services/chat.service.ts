@@ -45,7 +45,7 @@ export class ChatService {
     {
       id: 1,
       isUser: false,
-      text: 'Olá! 👋 Sou o Agente de Hipóteses, uma IA multiagente especializada em transformar suas hipóteses em ideias testáveis. Como posso ajudar você hoje?\n\n• Descreva uma hipótese para eu gerar ideias\n• Defina premissas e público-alvo no painel lateral\n• Adicione documentos de referência para contexto adicional',
+      text: 'Olá! 👋 Sou a Lupa de Ideias, uma IA multiagente especializada em transformar suas hipóteses em ideias testáveis. Como posso ajudar você hoje?\n\n• Descreva uma hipótese para eu gerar ideias\n• Defina os dados do projeto no painel lateral\n• Adicione documentos de referência para contexto adicional',
       timestamp: new Date()
     }
   ]);
@@ -75,36 +75,34 @@ export class ChatService {
   processMessageFlow(inputText: string): Observable<any> {
     const contextData = this.uiState.getContext();
 
-    // Build the dynamic payload using Sidebar context instead of full mocks
+    // Map the new fields to the Hypothesis payload structure
     const hypothesisPayload: HypothesisPayload = {
       sessionId: 1,
       description: inputText,
-      associatedCause: contextData.premises || "Causa não definida via premissas",
-      estimatedImpact: contextData.targetAudience || "Público-alvo não mapeado",
+      associatedCause: contextData.whatToBeDone || "Causa não definida via premissas",
+      estimatedImpact: contextData.objective || "Impacto não mapeado via objetivo",
       priority: 2, 
       qualityScore: 1.0
     };
 
     return this.http.post(`${this.API_URL}/hypotheses`, hypothesisPayload).pipe(
       tap(() => {
-        // Optimistic update: show msg if Step 1 works
         this.addMessage({ isUser: true, text: inputText });
       }),
       concatMap((hypothesisResponse: any) => {
-        // Form the payload dynamically sending the real context variables
+        // Stringify the context to Idea context
         const ideaPayload: IdeaPayload = {
           originalText: inputText,
           domain: "App",
-          context: `Premissas da Solução: ${contextData.premises}. Público-alvo: ${contextData.targetAudience}`
+          context: `O que será feito: ${contextData.whatToBeDone}. Para quem: ${contextData.forWhom}. Objetivo: ${contextData.objective}`
         };
         return this.http.post(`${this.API_URL}/ideas`, ideaPayload);
       }),
       tap((ideaResponse: any) => {
-        // Construct the Card directly from the bot's dynamic response instead of fixed hardcode strings
         const card: CardDetailed = {
           title: ideaResponse.title || ideaResponse.name || 'Nova Hipótese Analisada',
           idea: ideaResponse.originalText || ideaResponse.description || ideaResponse.idea || inputText,
-          foundation: ideaResponse.context || ideaResponse.foundation || `Com base no público: ${contextData.targetAudience || 'Geral'} e nas suas premissas definidas.`
+          foundation: ideaResponse.context || ideaResponse.foundation || `Com foco em: ${contextData.forWhom || 'Público Geral'} visando ${contextData.objective || 'N/A'}`
         };
 
         this.addMessage({
