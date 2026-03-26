@@ -125,6 +125,33 @@
         white-space: nowrap;
         margin-left: 12px;
       }
+
+      .badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        margin-left: 12px;
+        white-space: nowrap;
+
+        &.impact-high {
+          background-color: #DEF7EC;
+          color: #03543F;
+        }
+        &.impact-medium {
+          background-color: #FEF3C7;
+          color: #92400E;
+        }
+        &.impact-low {
+          background-color: #FDE8E8;
+          color: #9B1C1C;
+        }
+        &.impact- {
+          background-color: #E5E7EB;
+          color: #374151;
+        }
+      }
     }
 
     .description {
@@ -132,6 +159,40 @@
       line-height: 1.5;
       color: var(--text-main);
       margin: 0;
+    }
+
+    .card-footer {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+
+      .context-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+      }
+
+      .context-text {
+        font-size: 12px;
+        color: var(--text-main);
+        margin: 4px 0 8px 0;
+      }
+
+      .metrics {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+
+        .metric {
+          font-size: 11px;
+          background: var(--bg-main);
+          padding: 4px 8px;
+          border-radius: 4px;
+          color: var(--text-muted);
+          font-weight: 500;
+        }
+      }
     }
   }
 }

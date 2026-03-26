@@ -4,18 +4,22 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 export interface Idea {
-  id?: string;
-  title?: string;
-  description?: string;
-  date?: string;
-  [key: string]: any; // Allow generic props just in case
+  id?: number;
+  originalText?: string;
+  domain?: string;
+  context?: string;
+  createdAt?: string;
+  [key: string]: any;
 }
 
 export interface Hypothesis {
-  id?: string;
-  title?: string;
+  id?: number;
+  sessionId?: number;
   description?: string;
-  date?: string;
+  associatedCause?: string;
+  estimatedImpact?: string;
+  priority?: number;
+  qualityScore?: number;
   [key: string]: any;
 }
 

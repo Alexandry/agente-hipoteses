@@ -30,13 +30,43 @@
 
     <!-- List State -->
     <div class="grid-list" *ngIf="!isLoading && !hasError && items.length > 0">
-      <div class="card" *ngFor="let item of items">
-        <div class="card-header">
-          <strong>{{ item.title || 'Sem Título' }}</strong>
-          <span class="date">{{ item.date | date:'shortDate' }}</span>
+      
+      <!-- IDEAS VIEW -->
+      <ng-container *ngIf="currentView === 'ideas'">
+        <div class="card" *ngFor="let item of items">
+          <div class="card-header">
+            <strong>ID #{{ item.id || '-' }} - {{ item.domain || 'Geral' }}</strong>
+            <span class="date" *ngIf="item.createdAt">{{ item.createdAt | date:'shortDate' }}</span>
+          </div>
+          <p class="description">{{ item.originalText || item.description || 'Nenhuma descrição fornecida.' }}</p>
+          <div class="card-footer" *ngIf="item.context">
+            <small class="context-label">Contexto de Apoio:</small>
+            <p class="context-text">{{ item.context }}</p>
+          </div>
         </div>
-        <p class="description">{{ item.description || 'Nenhuma descrição fornecida.' }}</p>
-      </div>
+      </ng-container>
+
+      <!-- HYPOTHESES VIEW -->
+      <ng-container *ngIf="currentView === 'hypotheses'">
+        <div class="card" *ngFor="let item of items">
+          <div class="card-header">
+            <strong>ID #{{ item.id || '-' }}</strong>
+            <span class="badge impact-{{ (item.estimatedImpact || '').toLowerCase() }}">
+              Impacto: {{ item.estimatedImpact || 'N/A' }}
+            </span>
+          </div>
+          <p class="description">{{ item.description || 'Nenhuma descrição fornecida.' }}</p>
+          <div class="card-footer" *ngIf="item.associatedCause">
+            <small class="context-label">Causa Associada:</small>
+            <p class="context-text">{{ item.associatedCause }}</p>
+            <div class="metrics">
+               <span class="metric">Prioridade: {{ item.priority || '-' }}</span>
+               <span class="metric">Score: {{ item.qualityScore || '-' }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
     </div>
 
   </div>
