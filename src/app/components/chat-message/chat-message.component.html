@@ -1,0 +1,42 @@
+<div class="message-wrapper" [class.is-user]="message.isUser" [class.is-error]="message.isError">
+  
+  <div *ngIf="!message.isUser" class="avatar bot-avatar">
+    <span>🤖</span>
+  </div>
+
+  <div class="message-content">
+    
+    <div class="text-bubble">
+      <p style="white-space: pre-line;">{{ message.text }}</p>
+      
+      <div class="rich-card" *ngIf="message.hasCard && message.cardData">
+        <div class="card-header">
+          <span class="check-icon">✅</span>
+          <strong>Hipótese: {{ message.cardData.title }}</strong>
+        </div>
+        
+        <div class="card-section">
+          <h5>Ideia</h5>
+          <p>{{ message.cardData.idea }}</p>
+        </div>
+
+        <div class="card-section">
+          <h5>Fundamentação</h5>
+          <p>{{ message.cardData.foundation }}</p>
+        </div>
+        
+        <div class="card-section">
+          <h5>Método de Teste</h5>
+          <p>Definir A/B teste para validação controlada com 50% da base.</p>
+        </div>
+      </div>
+    </div>
+    
+    <span class="timestamp">{{ message.timestamp | date:'shortTime' }}</span>
+  </div>
+
+  <div *ngIf="message.isUser" class="avatar user-avatar">
+    <span>👤</span>
+  </div>
+  
+</div>

@@ -1,0 +1,62 @@
+/* You can add global styles to this file, and also import other style files */
+
+:root {
+  --primary-blue: #0F52BA; /* adjust depending on screenshot blue */
+  --primary-blue-hover: #0c439c;
+  --dark-blue: #1A365D; /* Darker blue for user messages */
+  --bg-sidebar: #F9FAFB;
+  --bg-main: #FFFFFF;
+  --bg-bot-message: #F3F4F6;
+  --bg-bot-avatar: #22C55E; /* Green bot avatar */
+  --bg-user-avatar: #3B82F6; /* Blue user avatar */
+  
+  --text-main: #1F2937;
+  --text-muted: #6B7280;
+  --text-white: #FFFFFF;
+  
+  --border-color: #E5E7EB;
+  
+  --font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  overflow: hidden; /* Prevent body scroll, handle scroll in components */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Base Form elements reset */
+input, textarea, button {
+  font-family: inherit;
+  font-size: 1rem;
+}

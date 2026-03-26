@@ -1,0 +1,43 @@
+<div class="history-container">
+  
+  <div class="header-bar">
+    <button class="back-btn" (click)="goBackToChat()">
+      <span class="icon">🔙</span>
+      Voltar ao Chat
+    </button>
+    <h2>{{ currentView === 'ideas' ? 'Histórico de Ideias' : 'Histórico de Hipóteses' }}</h2>
+  </div>
+
+  <div class="content-area">
+    
+    <!-- Loading State -->
+    <div class="state-container" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Carregando dados...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="state-container" *ngIf="!isLoading && hasError">
+      <div class="error-icon">⚠️</div>
+      <p>Ocorreu um erro ao buscar os dados.</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="state-container" *ngIf="!isLoading && !hasError && items.length === 0">
+      <div class="empty-icon">📁</div>
+      <p>Nenhuma {{ currentView === 'ideas' ? 'ideia' : 'hipótese' }} encontrada no histórico.</p>
+    </div>
+
+    <!-- List State -->
+    <div class="grid-list" *ngIf="!isLoading && !hasError && items.length > 0">
+      <div class="card" *ngFor="let item of items">
+        <div class="card-header">
+          <strong>{{ item.title || 'Sem Título' }}</strong>
+          <span class="date">{{ item.date | date:'shortDate' }}</span>
+        </div>
+        <p class="description">{{ item.description || 'Nenhuma descrição fornecida.' }}</p>
+      </div>
+    </div>
+
+  </div>
+</div>

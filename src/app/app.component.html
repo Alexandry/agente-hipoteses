@@ -1,0 +1,9 @@
+<main class="app-layout">
+  <aside class="sidebar-container">
+    <app-sidebar></app-sidebar>
+  </aside>
+  <section class="main-content">
+    <app-chat-area *ngIf="currentView === 'chat'"></app-chat-area>
+    <app-history-area *ngIf="currentView === 'ideas' || currentView === 'hypotheses'"></app-history-area>
+  </section>
+</main>
