@@ -8,6 +8,12 @@ export interface Idea {
   originalText?: string;
   domain?: string;
   context?: string;
+  structuredSummary?: string;
+  problemStatement?: string;
+  proposedSolution?: string;
+  targetAudience?: string;
+  initialAssumptions?: string;
+  gapsAndAmbiguities?: string;
   createdAt?: string;
   [key: string]: any;
 }
@@ -16,6 +22,11 @@ export interface Hypothesis {
   id?: number;
   sessionId?: number;
   description?: string;
+  hypothesisType?: string;
+  rationale?: string;
+  relevantVariables?: string;
+  sourceReference?: string;
+  strengthLabel?: string;
   associatedCause?: string;
   estimatedImpact?: string;
   priority?: number;
@@ -36,17 +47,16 @@ export class HistoryService {
     return this.http.get<Idea[]>(`${this.API_URL}/ideas`).pipe(
       catchError(error => {
         console.error('Erro ao buscar ideias', error);
-        return of([]); // Retorna array vazio em caso de erro
+        return of([]); 
       })
     );
   }
 
-  // Expecting a sessionId or defaulting to a mock one if needed
-  getHipoteses(sessionId: string = 'default-session'): Observable<Hypothesis[]> {
-    return this.http.get<Hypothesis[]>(`${this.API_URL}/analysis-sessions/${sessionId}/hypotheses`).pipe(
+  getHipoteses(sessionId: string = '1'): Observable<Hypothesis[]> {
+    return this.http.get<Hypothesis[]>(`${this.API_URL}/hypotheses`).pipe(
       catchError(error => {
         console.error('Erro ao buscar hipóteses', error);
-        return of([]); // Retorna array vazio em caso de erro
+        return of([]); 
       })
     );
   }

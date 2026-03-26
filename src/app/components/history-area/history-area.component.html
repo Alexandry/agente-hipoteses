@@ -35,13 +35,17 @@
       <ng-container *ngIf="currentView === 'ideas'">
         <div class="card" *ngFor="let item of items">
           <div class="card-header">
-            <strong>ID #{{ item.id || '-' }} - {{ item.domain || 'Geral' }}</strong>
+            <strong>ID #{{ item.id || '-' }} - {{ item.domain || 'Ideia' }}</strong>
             <span class="date" *ngIf="item.createdAt">{{ item.createdAt | date:'shortDate' }}</span>
           </div>
-          <p class="description">{{ item.originalText || item.description || 'Nenhuma descrição fornecida.' }}</p>
-          <div class="card-footer" *ngIf="item.context">
-            <small class="context-label">Contexto de Apoio:</small>
-            <p class="context-text">{{ item.context }}</p>
+          <p class="description">{{ item.originalText || item.problemStatement || 'Sem descrição.' }}</p>
+          <div class="card-footer" *ngIf="item.structuredSummary || item.proposedSolution">
+            <small class="context-label">Solução Proposta:</small>
+            <p class="context-text">{{ item.proposedSolution || 'N/A' }}</p>
+            <div class="metrics" style="flex-wrap: wrap;">
+               <span class="metric" *ngIf="item.targetAudience">Alvo: {{ item.targetAudience }}</span>
+               <span class="metric" *ngIf="item.gapsAndAmbiguities">Gaps: {{ item.gapsAndAmbiguities }}</span>
+            </div>
           </div>
         </div>
       </ng-container>
@@ -56,12 +60,13 @@
             </span>
           </div>
           <p class="description">{{ item.description || 'Nenhuma descrição fornecida.' }}</p>
-          <div class="card-footer" *ngIf="item.associatedCause">
-            <small class="context-label">Causa Associada:</small>
-            <p class="context-text">{{ item.associatedCause }}</p>
+          <div class="card-footer" *ngIf="item.associatedCause || item.rationale">
+            <small class="context-label">Fundamentação (Rationale):</small>
+            <p class="context-text">{{ item.rationale || item.associatedCause }}</p>
             <div class="metrics">
-               <span class="metric">Prioridade: {{ item.priority || '-' }}</span>
                <span class="metric">Score: {{ item.qualityScore || '-' }}</span>
+               <span class="metric">Força: {{ item.strengthLabel || '-' }}</span>
+               <span class="metric">Tipo: {{ item.hypothesisType || '-' }}</span>
             </div>
           </div>
         </div>

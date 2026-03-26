@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, forkJoin } from 'rxjs';
 import { concatMap, tap, catchError, map } from 'rxjs/operators';
 import { UiStateService } from './ui-state.service';
 
@@ -23,6 +23,11 @@ export interface ChatMessage {
 export interface HypothesisPayload {
   sessionId: number;
   description: string;
+  hypothesisType: string;
+  rationale: string;
+  relevantVariables: string;
+  sourceReference: string;
+  strengthLabel: string;
   associatedCause: string;
   estimatedImpact: string;
   priority: number;
@@ -33,6 +38,12 @@ export interface IdeaPayload {
   originalText: string;
   domain: string;
   context: string;
+  structuredSummary: string;
+  problemStatement: string;
+  proposedSolution: string;
+  targetAudience: string;
+  initialAssumptions: string;
+  gapsAndAmbiguities: string;
 }
 
 @Injectable({
@@ -41,7 +52,7 @@ export interface IdeaPayload {
 export class ChatService {
   // URLs Desacopladas
   private readonly DB_API_URL = 'http://localhost:8080/api'; // Persistência de Ideias e Hipóteses
-  private readonly AGENT_API_URL = 'http://localhost:5000/agent'; // Substitua pela URL real do Agente GenAI
+  private readonly AGENT_API_URL = 'http://localhost:5000/agent'; // URL da IA
 
   private messagesSubject = new BehaviorSubject<ChatMessage[]>([
     {
@@ -75,61 +86,79 @@ export class ChatService {
   }
 
   processMessageFlow(inputText: string): Observable<any> {
-    const hypothesisPayload: HypothesisPayload = {
-      sessionId: 1,
-      description: inputText,
-      associatedCause: "Definido de forma orgânica no prompt do usuário",
-      estimatedImpact: "Avaliado pelo contexto da conversa",
-      priority: 2, 
-      qualityScore: 1.0
+
+    // Optimistic Update: Coloca a mensagem na interface logo!
+    this.addMessage({ isUser: true, text: inputText });
+
+    // 1. Invoca o Agente com a mensagem do Usuário
+    const agentReqPayload = { 
+      input: inputText 
     };
 
-    // 1. Salva Hipótese
-    return this.http.post(`${this.DB_API_URL}/hypotheses`, hypothesisPayload).pipe(
-      tap(() => {
-        this.addMessage({ isUser: true, text: inputText });
-      }),
-      // 2. Chama o Agente passando os dados
-      concatMap((hypothesisResponse: any) => {
-        const agentPayload = {
-          input: inputText,
-          context: "Dados fornecidos pelo chat do usuário"
-        };
-        return this.http.post(`${this.AGENT_API_URL}/generate`, agentPayload);
-      }),
+    return this.http.post(`${this.AGENT_API_URL}/generate`, agentReqPayload).pipe(
+      
       // 3. O Agente retornou, agora persista a Ideia Base gerada por ele
       concatMap((agentResponse: any) => {
-        const ideaPayload: IdeaPayload = {
-          originalText: agentResponse.resultado || agentResponse.idea || inputText,
-          domain: "App",
-          context: "Extraído do fluxo da Lupa de Ideias"
-        };
         
-        // Retorna um mapeamento com as duas respostas pra usar na montagem final da UI
-        return this.http.post(`${this.DB_API_URL}/ideas`, ideaPayload).pipe(
-          map(ideaResponse => ({ agentResponse, ideaResponse }))
+        // Separatriz de DTO: IDEIA
+        const ideaPayload: IdeaPayload = {
+          originalText: agentResponse.resposta || agentResponse.originalText || inputText,
+          domain: agentResponse.domain || "App Geral",
+          context: agentResponse.context || "Extraído da conversa via Chat",
+          structuredSummary: agentResponse.structuredSummary || "",
+          problemStatement: agentResponse.problemStatement || "",
+          proposedSolution: agentResponse.proposedSolution || "",
+          targetAudience: agentResponse.targetAudience || "",
+          initialAssumptions: agentResponse.initialAssumptions || "",
+          gapsAndAmbiguities: agentResponse.gapsAndAmbiguities || ""
+        };
+
+        // Separatriz de DTO: HIPÓTESE
+        const hypothesisPayload: HypothesisPayload = {
+          sessionId: 1, 
+          description: agentResponse.description || inputText,
+          hypothesisType: agentResponse.hypothesisType || "Behavioral",
+          rationale: agentResponse.rationale || "Definido pela IA com base nas premissas",
+          relevantVariables: agentResponse.relevantVariables || "",
+          sourceReference: agentResponse.sourceReference || "Sistema Multiagente Lupa",
+          strengthLabel: agentResponse.strengthLabel || "MODERATE",
+          associatedCause: agentResponse.associatedCause || "Informado via chat",
+          estimatedImpact: agentResponse.estimatedImpact || "MEDIUM",
+          priority: agentResponse.priority || 2,
+          qualityScore: agentResponse.qualityScore || 0.8
+        };
+
+        // Executar de forma paralela usando forkJoin
+        return forkJoin({
+          ideaDbResponse: this.http.post(`${this.DB_API_URL}/ideas`, ideaPayload),
+          hypothesisDbResponse: this.http.post(`${this.DB_API_URL}/hypotheses`, hypothesisPayload)
+        }).pipe(
+          map(dbResults => ({ agentResponse, dbResults }))
         );
+
       }),
-      // 4. Monta o Card com a resposta consolidada
-      tap(({ agentResponse, ideaResponse }: any) => {
+
+      // 4. Tudo salvo! Agora construa a visualização para o Front-End
+      tap(({ agentResponse, dbResults }: any) => {
         const card: CardDetailed = {
-          title: ideaResponse.title || agentResponse.title || 'Nova Ideia Gerada',
-          idea: ideaResponse.originalText || agentResponse.resultado || agentResponse.idea || inputText,
-          foundation: agentResponse.foundation || ideaResponse.context || `Foco em extrair valor dos dados da conversa.`
+          title: agentResponse.hypothesisType || 'Nova Estrutura Consolidada',
+          idea: agentResponse.proposedSolution || agentResponse.structuredSummary || inputText,
+          foundation: agentResponse.rationale || agentResponse.problemStatement || `Análise gerada e particionada no banco de dados com sucesso.`
         };
 
         this.addMessage({
           isUser: false,
-          text: agentResponse.message || 'Analisei sua solicitação com nossa IA e preparei sua resposta estruturada! ✅',
+          text: agentResponse.resposta || 'A Lupa finalizou a orquestração! Analisei os campos textuais, quebrei as entidades em Hipóteses e Ideias e salvei no banco separadamente. 🚀',
           hasCard: true,
           cardData: card
         });
       }),
+
       catchError(error => {
-        console.error('Falha na orquestração (DB ou Agente):', error);
+        console.error('Falha na orquestração GenAI + DB:', error);
         this.addMessage({
           isUser: false,
-          text: 'Falha ao sincronizar. Verifique se o Back-End (8080) e o Agente GenAI estão rodando corretamente.',
+          text: 'Falha durante o processo de estruturação da IA ou ao espelhar pro back-end.',
           isError: true
         });
         return throwError(() => error);
