@@ -92,14 +92,18 @@ export class ChatService {
 
     // 1. Invoca o Agente com a mensagem do Usuário
     const agentReqPayload = { 
-      input: inputText 
+      session_id: 1,
+      user_id: "user123", /* Configurado previamente para o backend Python */ 
+      question: inputText 
     };
 
     return this.http.post(`${this.AGENT_API_URL}/generate`, agentReqPayload).pipe(
       
-      // 3. O Agente retornou, agora persista a Ideia Base gerada por ele
+      /* 
+       ************************************************************************
+       * TRECHO COMENTADO: Persistência no Back-End de Ideias/Hipóteses via REST
+       ************************************************************************
       concatMap((agentResponse: any) => {
-        
         // Separatriz de DTO: IDEIA
         const ideaPayload: IdeaPayload = {
           originalText: agentResponse.resposta || agentResponse.originalText || inputText,
@@ -127,38 +131,36 @@ export class ChatService {
           priority: agentResponse.priority || 2,
           qualityScore: agentResponse.qualityScore || 0.8
         };
-
-        // Executar de forma paralela usando forkJoin
         return forkJoin({
           ideaDbResponse: this.http.post(`${this.DB_API_URL}/ideas`, ideaPayload),
           hypothesisDbResponse: this.http.post(`${this.DB_API_URL}/hypotheses`, hypothesisPayload)
         }).pipe(
           map(dbResults => ({ agentResponse, dbResults }))
         );
-
       }),
+      */
 
-      // 4. Tudo salvo! Agora construa a visualização para o Front-End
-      tap(({ agentResponse, dbResults }: any) => {
+      // 2. O Agente retornou direto! Construa a visualização para o Front-End imediatamente
+      tap((agentResponse: any) => {
         const card: CardDetailed = {
           title: agentResponse.hypothesisType || 'Nova Estrutura Consolidada',
-          idea: agentResponse.proposedSolution || agentResponse.structuredSummary || inputText,
-          foundation: agentResponse.rationale || agentResponse.problemStatement || `Análise gerada e particionada no banco de dados com sucesso.`
+          idea: agentResponse.resposta || agentResponse.proposedSolution || agentResponse.structuredSummary || inputText,
+          foundation: agentResponse.rationale || agentResponse.problemStatement || `Análise gerada e entregue na interface via simulação direta.`
         };
 
         this.addMessage({
           isUser: false,
-          text: agentResponse.resposta || 'A Lupa finalizou a orquestração! Analisei os campos textuais, quebrei as entidades em Hipóteses e Ideias e salvei no banco separadamente. 🚀',
+          text: agentResponse.resposta || 'A Lupa finalizou a orquestração! Analisei os campos textuais de imediato sem salvar os rastros no banco de dados. 🚀',
           hasCard: true,
           cardData: card
         });
       }),
 
       catchError(error => {
-        console.error('Falha na orquestração GenAI + DB:', error);
+        console.error('Falha na orquestração GenAI:', error);
         this.addMessage({
           isUser: false,
-          text: 'Falha durante o processo de estruturação da IA ou ao espelhar pro back-end.',
+          text: 'Falha durante o processo do Agente IA. Verifique se ele está rodando na porta 5000.',
           isError: true
         });
         return throwError(() => error);
