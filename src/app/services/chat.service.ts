@@ -47,7 +47,7 @@ export class ChatService {
     {
       id: 1,
       isUser: false,
-      text: 'Olá! 👋 Sou a Lupa de Ideias, uma IA multiagente especializada em transformar suas hipóteses em ideias testáveis. Como posso ajudar você hoje?\n\n• Descreva uma hipótese para eu gerar ideias\n• Defina os dados do projeto no painel lateral\n• Adicione documentos de referência para contexto adicional',
+      text: 'Olá! 👋 Sou a Lupa de Ideias, uma IA multiagente especializada em transformar suas hipóteses em ideias testáveis.\n\nPor favor, envie-me na sua mensagem uma ideia guiada pelas perguntas estruturais:\n• O que será feito?\n• Para quem será feito?\n• Objetivo / resultado esperado',
       timestamp: new Date()
     }
   ]);
@@ -75,13 +75,11 @@ export class ChatService {
   }
 
   processMessageFlow(inputText: string): Observable<any> {
-    const contextData = this.uiState.getContext();
-
     const hypothesisPayload: HypothesisPayload = {
       sessionId: 1,
       description: inputText,
-      associatedCause: contextData.whatToBeDone || "Causa não definida via premissas",
-      estimatedImpact: contextData.objective || "Impacto não mapeado via objetivo",
+      associatedCause: "Definido de forma orgânica no prompt do usuário",
+      estimatedImpact: "Avaliado pelo contexto da conversa",
       priority: 2, 
       qualityScore: 1.0
     };
@@ -95,7 +93,7 @@ export class ChatService {
       concatMap((hypothesisResponse: any) => {
         const agentPayload = {
           input: inputText,
-          context: `O que será feito: ${contextData.whatToBeDone}. Para quem: ${contextData.forWhom}. Objetivo: ${contextData.objective}`
+          context: "Dados fornecidos pelo chat do usuário"
         };
         return this.http.post(`${this.AGENT_API_URL}/generate`, agentPayload);
       }),
@@ -104,7 +102,7 @@ export class ChatService {
         const ideaPayload: IdeaPayload = {
           originalText: agentResponse.resultado || agentResponse.idea || inputText,
           domain: "App",
-          context: `O que será feito: ${contextData.whatToBeDone}`
+          context: "Extraído do fluxo da Lupa de Ideias"
         };
         
         // Retorna um mapeamento com as duas respostas pra usar na montagem final da UI
@@ -117,12 +115,12 @@ export class ChatService {
         const card: CardDetailed = {
           title: ideaResponse.title || agentResponse.title || 'Nova Ideia Gerada',
           idea: ideaResponse.originalText || agentResponse.resultado || agentResponse.idea || inputText,
-          foundation: agentResponse.foundation || ideaResponse.context || `Foco em: ${contextData.forWhom || 'Público Geral'} visando ${contextData.objective || 'N/A'}`
+          foundation: agentResponse.foundation || ideaResponse.context || `Foco em extrair valor dos dados da conversa.`
         };
 
         this.addMessage({
           isUser: false,
-          text: agentResponse.message || 'Analisei sua solicitação com nossa IA e preparei sua reposta estruturada! ✅',
+          text: agentResponse.message || 'Analisei sua solicitação com nossa IA e preparei sua resposta estruturada! ✅',
           hasCard: true,
           cardData: card
         });
