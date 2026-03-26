@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { concatMap, tap, catchError } from 'rxjs/operators';
+import { concatMap, tap, catchError, map } from 'rxjs/operators';
 import { UiStateService } from './ui-state.service';
 
 export interface CardDetailed {
@@ -39,7 +39,9 @@ export interface IdeaPayload {
   providedIn: 'root'
 })
 export class ChatService {
-  private readonly API_URL = 'http://localhost:8080/api';
+  // URLs Desacopladas
+  private readonly DB_API_URL = 'http://localhost:8080/api'; // Persistência de Ideias e Hipóteses
+  private readonly AGENT_API_URL = 'http://localhost:5000/agent'; // Substitua pela URL real do Agente GenAI
 
   private messagesSubject = new BehaviorSubject<ChatMessage[]>([
     {
@@ -75,7 +77,6 @@ export class ChatService {
   processMessageFlow(inputText: string): Observable<any> {
     const contextData = this.uiState.getContext();
 
-    // Map the new fields to the Hypothesis payload structure
     const hypothesisPayload: HypothesisPayload = {
       sessionId: 1,
       description: inputText,
@@ -85,38 +86,52 @@ export class ChatService {
       qualityScore: 1.0
     };
 
-    return this.http.post(`${this.API_URL}/hypotheses`, hypothesisPayload).pipe(
+    // 1. Salva Hipótese
+    return this.http.post(`${this.DB_API_URL}/hypotheses`, hypothesisPayload).pipe(
       tap(() => {
         this.addMessage({ isUser: true, text: inputText });
       }),
+      // 2. Chama o Agente passando os dados
       concatMap((hypothesisResponse: any) => {
-        // Stringify the context to Idea context
-        const ideaPayload: IdeaPayload = {
-          originalText: inputText,
-          domain: "App",
+        const agentPayload = {
+          input: inputText,
           context: `O que será feito: ${contextData.whatToBeDone}. Para quem: ${contextData.forWhom}. Objetivo: ${contextData.objective}`
         };
-        return this.http.post(`${this.API_URL}/ideas`, ideaPayload);
+        return this.http.post(`${this.AGENT_API_URL}/generate`, agentPayload);
       }),
-      tap((ideaResponse: any) => {
+      // 3. O Agente retornou, agora persista a Ideia Base gerada por ele
+      concatMap((agentResponse: any) => {
+        const ideaPayload: IdeaPayload = {
+          originalText: agentResponse.resultado || agentResponse.idea || inputText,
+          domain: "App",
+          context: `O que será feito: ${contextData.whatToBeDone}`
+        };
+        
+        // Retorna um mapeamento com as duas respostas pra usar na montagem final da UI
+        return this.http.post(`${this.DB_API_URL}/ideas`, ideaPayload).pipe(
+          map(ideaResponse => ({ agentResponse, ideaResponse }))
+        );
+      }),
+      // 4. Monta o Card com a resposta consolidada
+      tap(({ agentResponse, ideaResponse }: any) => {
         const card: CardDetailed = {
-          title: ideaResponse.title || ideaResponse.name || 'Nova Hipótese Analisada',
-          idea: ideaResponse.originalText || ideaResponse.description || ideaResponse.idea || inputText,
-          foundation: ideaResponse.context || ideaResponse.foundation || `Com foco em: ${contextData.forWhom || 'Público Geral'} visando ${contextData.objective || 'N/A'}`
+          title: ideaResponse.title || agentResponse.title || 'Nova Ideia Gerada',
+          idea: ideaResponse.originalText || agentResponse.resultado || agentResponse.idea || inputText,
+          foundation: agentResponse.foundation || ideaResponse.context || `Foco em: ${contextData.forWhom || 'Público Geral'} visando ${contextData.objective || 'N/A'}`
         };
 
         this.addMessage({
           isUser: false,
-          text: ideaResponse.message || 'Analisei sua solicitação com o nosso sistema back-end e preparei sua resposta testável! ✅',
+          text: agentResponse.message || 'Analisei sua solicitação com nossa IA e preparei sua reposta estruturada! ✅',
           hasCard: true,
           cardData: card
         });
       }),
       catchError(error => {
-        console.error('Falha na orquestração com o Back-End:', error);
+        console.error('Falha na orquestração (DB ou Agente):', error);
         this.addMessage({
           isUser: false,
-          text: 'Falha ao sincronizar com o servidor. Verifique a conexão com a API e se o backend Spring Boot localhost:8080 está rodando.',
+          text: 'Falha ao sincronizar. Verifique se o Back-End (8080) e o Agente GenAI estão rodando corretamente.',
           isError: true
         });
         return throwError(() => error);
