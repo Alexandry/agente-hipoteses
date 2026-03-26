@@ -47,7 +47,7 @@ export class ChatService {
     {
       id: 1,
       isUser: false,
-      text: 'Olá! 👋 Sou a Lupa de Ideias, uma IA multiagente especializada em transformar suas hipóteses em ideias testáveis.\n\nPor favor, envie-me na sua mensagem uma ideia guiada pelas perguntas estruturais:\n• O que será feito?\n• Para quem será feito?\n• Objetivo / resultado esperado',
+      text: 'Olá! 👋 Sou a Lupa de Ideias, uma IA multiagente especializada em transformar suas hipóteses em ideias testáveis.<br><br>Por favor, envie-me na sua mensagem uma ideia guiada pelas perguntas estruturais:<br><br>• <b>O que será feito?</b> <span class="context-example">(Ex: melhorar o tempo de resposta da análise de crédito)</span><br>• <b>Para quem será feito?</b> <span class="context-example">(Ex: clientes que possuem serviços com o BV)</span><br>• <b>Objetivo / resultado esperado</b> <span class="context-example">(Ex: manter um relacionamento duradouro com o cliente)</span>',
       timestamp: new Date()
     }
   ]);

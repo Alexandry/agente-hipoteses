@@ -7,7 +7,7 @@
   <div class="message-content">
     
     <div class="text-bubble">
-      <p style="white-space: pre-line;">{{ message.text }}</p>
+      <p style="margin: 0;" [innerHTML]="message.text"></p>
       
       <div class="rich-card" *ngIf="message.hasCard && message.cardData">
         <div class="card-header">
